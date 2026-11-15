@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Casino</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0f1117;--c:#1a1d29;--c2:#262a3b;--m:#8b90a8;--a:#7c5cff;--g:#2ecc71;--r:#ff4d6a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:#eef;font:15px system-ui,sans-serif;padding:0 12px 84px}
+header{display:flex;justify-content:space-between;padding:14px 0;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:var(--c);border-radius:14px;padding:14px}.card b{font-size:30px}.card h3{margin:6px 0 2px;font-size:15px}
+small,.m{color:var(--m)}
+.card2{background:var(--c);border-radius:14px;padding:14px;margin-bottom:10px}
+input{width:100%;background:var(--c2);border:0;border-radius:10px;color:#fff;padding:11px;font-size:16px;margin:4px 0}
+.btn{width:100%;background:var(--a);color:#fff;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:700;margin-top:8px}
+.back{background:none;border:0;color:var(--m);padding:6px 0;font-size:15px}
+.chips,.sel{display:flex;gap:6px;margin:6px 0}
+.chips button,.sel button{flex:1;background:var(--c2);color:#fff;border:0;border-radius:8px;padding:9px 0}
+.sel .on{background:var(--a)}
+.res{min-height:28px;text-align:center;font-weight:700;margin:8px 0}.ok{color:var(--g)}.bad{color:var(--r)}
+canvas{display:block;margin:0 auto;max-width:100%}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--c);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:0;color:var(--m);padding:8px;font-size:14px}nav .on{color:#fff}
+.row2{display:flex;gap:10px;padding:11px;background:var(--c);border-radius:10px;margin-bottom:6px}.row2 b{flex:1}.row2.me{outline:2px solid var(--a)}
+.ch{display:flex;justify-content:center;gap:8px;font-size:34px;margin:14px 0;text-align:center}.ch .cur{transform:scale(1.35)}
+.big{font-size:44px;text-align:center;font-weight:800;margin:10px 0}
+.reels{display:flex;justify-content:center;gap:8px;font-size:56px;margin:14px 0}
+.reels span{background:var(--c2);border-radius:12px;width:84px;text-align:center;padding:8px 0}
+.wheel{position:relative;width:220px;height:220px;border-radius:50%;margin:16px auto}
+.arr{position:absolute;left:calc(50% - 2px);top:0;width:4px;height:50%;background:#fff;border-radius:2px;transform-origin:50% 100%;transition:transform 3s cubic-bezier(.2,.8,.2,1)}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#000c;padding:10px 16px;border-radius:10px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+
+.hm{text-align:center;font-size:26px;color:var(--r);margin-bottom:-12px;position:relative;z-index:2}
+.drum{position:relative;width:220px;height:220px;border-radius:50%;background:#2a2f44;margin:10px auto;transition:transform 3s cubic-bezier(.2,.8,.2,1);border:4px solid #444a63}
+.cm{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px;border-radius:50%;background:#0f1117;display:flex;align-items:center;justify-content:center;font-size:22px}
+.lb{position:absolute;left:50%;top:50%;width:30px;margin:-8px -15px;text-align:center;font-size:11px;color:#000;font-weight:800}
+.bar{position:relative;height:26px;border-radius:13px;margin:22px 0 4px}
+.mk{position:absolute;top:-8px;width:4px;height:42px;margin-left:-2px;background:#fff;border-radius:2px;transition:left .35s}
+.scale{display:flex;justify-content:space-between;color:var(--m);font-size:12px;margin-bottom:6px}
+.mach{background:linear-gradient(#3b2a00,#7a5a00);border:4px solid #ffc233;border-radius:18px;padding:12px;box-shadow:0 0 20px #ffc23355;margin:10px 0}
+.ttl{text-align:center;font-weight:800;color:#ffc233;letter-spacing:2px;margin-bottom:8px}
+.cols{display:flex;gap:4px;background:#0f1117;border-radius:10px;padding:6px}.col{flex:1;display:flex;flex-direction:column;gap:4px}
+.col span{background:#1a1d29;border-radius:8px;text-align:center;font-size:30px;padding:6px 0}.col .win{background:#ffc233!important}
+.chips{flex-wrap:wrap}.chips button{min-width:23%}.btn:disabled{opacity:.6}
+.bd{background:var(--c);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:13px}
+.hist{display:flex;gap:6px;overflow-x:auto;margin:6px 0;min-height:26px}.hist span{padding:4px 8px;border-radius:8px;font-size:12px;background:var(--c2);white-space:nowrap;font-weight:700}
+.rl{position:relative;overflow:hidden;height:104px;border-radius:12px;background:var(--c);margin:10px 0}
+.pin{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#fff;z-index:2;box-shadow:0 0 8px #fff}
+.strip{display:flex;gap:8px;position:absolute;left:0;top:10px;will-change:transform}
+.it{width:80px;height:84px;flex:none;border-radius:10px;background:var(--c2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;border-bottom:4px solid}
+</style></head><body>
+<header><span>🎰 Casino</span><span>💰 <span id="bal">0</span></span></header>
+<div id="main"></div>
+<nav><button data-t="games" onclick="nav('games')">🎮 Игры</button><button data-t="top" onclick="nav('top')">🏆 Топ</button><button data-t="me" onclick="nav('me')">👤 Профиль</button></nav>
+<div id="toast"></div>
+<script>
+const tg=window.Telegram?.WebApp;try{tg?.ready();tg?.expand()}catch(e){}
+const U=tg?.initDataUnsafe?.user||{id:0,username:'demo',first_name:'Игрок'};
+let isAdmin=false;
+let S={bal:0,won:0,rtp:.96};
+const $=s=>document.querySelector(s),rnd=Math.random,fmt=n=>Math.round(n*100)/100,wait=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const save=()=>{};
+const setBal=Q=>{S.bal=Q.bal;S.won=Q.won;upd()};
+async function play(o){const Q=await rpc('play',o);if(Q.err){toast(Q.err);if(Q.bal!=null){S.bal=Q.bal;S.won=Q.won;upd()}return null}return Q}
+let ws,pend={},rid=0;const DV=sessionStorage.dv||(sessionStorage.dv=Math.random().toString(36).slice(2,8));
+const rpc=(t,d={})=>new Promise(r=>{const id=++rid;pend[id]=r;ws.send(JSON.stringify({...d,t,id}))});
+function push(m){if(m.t=='me'){S.bal=m.bal;S.won=m.won;S.rtp=m.rtp;isAdmin=m.adm;MYID=m.uid;upd()}else if(m.t=='pvp')pvApply(m);else if(m.t=='rk'&&window.RKH)RKH(m)}
+function conn(){return new Promise(res=>{ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
+ ws.onopen=async()=>{const r=await rpc('auth',{initData:tg?.initData||'',dev:DV});if(r.err){document.body.innerHTML='<p style=padding:20px>Открой приложение через Telegram</p>';return}push(r);res()};
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&pend[m.id]){pend[m.id](m);delete pend[m.id]}else push(m)};
+ ws.onclose=()=>setTimeout(()=>conn().then(view),2000)})}
+const upd=()=>{$('#bal').textContent=fmt(S.bal);save()};
+const take=b=>{S.bal-=b;upd()};
+const give=(a,b)=>{S.bal+=a;if(a>b)S.won+=a-b;upd()};
+const say=(t,ok)=>{const e=$('#res');if(e){e.className='res '+(ok?'ok':'bad');e.textContent=t}};
+function toast(t){const e=$('#toast');e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,1900)}
+const anim=(f,t)=>new Promise(r=>{const s=performance.now();(function l(n){const p=Math.min(1,(n-s)/t);f(p);p<1?requestAnimationFrame(l):r()})(s)});
+let LAST=10;
+const betUI=()=>`<div class=m>Ставка</div><input id=bet type=number inputmode=decimal value=${LAST}><div class=chips>${[['Сброс','c'],['+10',10],['+100',100],['+1000',1000],['½','h'],['x2','d'],['MAX','m']].map(c=>`<button onclick="setBet('${c[1]}')">${c[0]}</button>`).join('')}</div>`;
+function setBet(v){const i=$('#bet'),c=+i.value||0;i.value=v=='h'?Math.max(1,fmt(c/2)):v=='d'?Math.min(S.bal,c*2):v=='m'?Math.floor(S.bal):v=='c'?1:Math.min(Math.floor(S.bal),c+(+v))}
+function getBet(){const b=fmt(+$('#bet').value);if(!(b>=1)||b>S.bal){toast('Неверная ставка или мало баланса');return 0}LAST=b;return b}
+function choices(id,L,i0,cb){const b=$('#'+id);let i=i0;const r=()=>{b.innerHTML=L.map((l,k)=>`<button class="${k==i?'on':''}">${l}</button>`).join('');b.querySelectorAll('button').forEach((e,k)=>e.onclick=()=>{i=k;r();cb(k)})};r()}
+
+const GAMES=[['pvp','⚔️','PvP Арена','Шарик выбирает победителя'],['plinko','🔻','Plinko','Множители до x5.6'],['rev','🔫','Револьвер','x1.35 — x8'],['dice','🎲','Dice','Свой шанс'],['x50','🎡','X50','x2 / x3 / x5 / x50'],['slots','🎁','Слоты','NFT-подарки и бонуски'],['up','🆙','Апгрейдер','Умножь ставку'],['rocket','🚀','Ракета','Забери до взрыва'],['case','📦','Ежедневный кейс','До 100 000 монет']];
+let tab='games';
+function nav(t){tab=t;view()}
+function view(){upd();const m=$('#main');
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));
+ if(tab=='games')m.innerHTML=`<div class=grid>${GAMES.map(g=>`<div class=card onclick="openGame('${g[0]}')"><b>${g[1]}</b><h3>${g[2]}</h3><small>${g[3]}</small></div>`).join('')}</div>`;
+ else if(tab=='top'){m.innerHTML='Загрузка…';rpc('top').then(r=>{if(tab!='top')return;m.innerHTML='<h3>Больше всего выиграли</h3>'+r.list.map((p,i)=>`<div class="row2${p.me?' me':''}"><span>${i<3?['🥇','🥈','🥉'][i]:i+1}</span><b>${esc(p.n)}</b><em>${p.w.toLocaleString('ru')}</em></div>`).join('')})}
+ else m.innerHTML=`<div class=card2><h2>${esc(U.first_name||'Игрок')} <small>@${esc(U.username||'demo')}</small></h2><p>Баланс: <b>${fmt(S.bal)}</b><br>Выиграно всего: ${fmt(S.won)}</p></div>
+<div class=card2><h3>🎟 Промокод</h3><input id=pc placeholder="Введите код"><button class=btn onclick=promo()>Активировать</button></div>
+<div class=card2><h3>🎁 Подарок другу</h3><input id=gu placeholder="@username"><input id=ga type=number placeholder="Сумма"><button class=btn onclick=gift()>Отправить</button></div><button class=btn style="background:var(--c2)" onclick=admin()>⚙️ Админ-панель</button>`}
+function openGame(id){$('#main').innerHTML=`<button class=back onclick=view()>← Назад</button>${id=='case'?'':'<div class=bd id=bd></div>'}<div id=gm></div>`;G[id]($('#gm'));
+ if(id!='case')rpc('best',{g:id}).then(r=>{const e=$('#bd');if(e)e.innerHTML=r.b?`🏆 Победа дня: <b>${esc(r.b.n)}</b> +${r.b.amt.toLocaleString('ru')}`:'🏆 Победа дня: пока никого. Стань первым!'})}
+function promo(){rpc('promo',{code:$('#pc').value}).then(r=>{toast(r.err||(r.kind=='case'?'+'+r.a+' кейс (открой в разделе кейса)':'+'+r.a));if(!r.err)view()})}
+function gift(){rpc('gift',{to:$('#gu').value,a:$('#ga').value}).then(r=>{toast(r.err||'Отправлено');if(!r.err)view()})}
+const A=(op,d={})=>rpc('admin',{op,...d});
+function admin(){if(window.ADMOK)return adminPanel();$('#main').innerHTML=`<button class=back onclick=nav('me')>← Назад</button><div class=card2><h3>⚙️ Вход в админ-панель</h3><input id=apw type=password placeholder="Пароль"><button class=btn onclick=adminLogin()>Войти</button></div>`}
+async function adminLogin(){const r=await rpc('alogin',{pw:$('#apw').value});if(r.err)return toast(r.err);window.ADMOK=1;adminPanel()}
+async function adminPanel(){const st=await A('state');if(st.err){window.ADMOK=0;return admin()}
+$('#main').innerHTML=`<button class=back onclick=nav('me')>← Назад</button>
+<div class=card2><h3>Статистика</h3><p class=m>Игроков: ${st.users} · онлайн: ${st.online}</p></div>
+<div class=card2><h3>Боты на арене</h3><p class=m>Играют сами, пока нет людей: ${st.bots?'включены':'выключены'}</p><button class=btn onclick="A('bots',{v:${!st.bots}}).then(admin)">${st.bots?'Выключить':'Включить'}</button></div>
+<div class=card2><h3>RTP, %</h3><input id=ar type=number value=${st.rtp}><button class=btn onclick="A('rtp',{v:$('#ar').value}).then(()=>toast('Сохранено'))">Сохранить</button></div>
+<div class=card2><h3>Создать промокод</h3><input id=pk placeholder=КОД><select id=pt style="width:100%;background:var(--c2);color:#fff;border:0;border-radius:10px;padding:11px;font-size:16px;margin:4px 0"><option value=coins>Монеты</option><option value=case>Кейсы</option></select><input id=pa type=number placeholder="Сумма монет / число кейсов"><input id=pu type=number placeholder="Кол-во активаций"><button class=btn onclick="A('promo',{code:$('#pk').value,a:$('#pa').value,uses:$('#pu').value,kind:$('#pt').value}).then(admin)">Создать</button><p class=m>${st.promos.map(esc).join('<br>')||'—'}</p></div>
+<div class=card2><h3>Игроки и баланс</h3><input id=sq placeholder="Поиск: @username или имя (пусто — топ по балансу)"><button class=btn onclick=aUsers()>Найти</button><div id=ul style="margin-top:8px"></div><p class=m id=sel>Игрок не выбран</p><input id=sa type=number placeholder="Сумма"><div class=chips><button onclick="aBal('add')">+ Добавить</button><button onclick="aBal('sub')">− Списать</button><button onclick="aBal('set')">= Установить</button></div></div>
+<div class=card2><h3>Таблица лидеров</h3><button class=btn style="background:var(--r)" onclick=aReset(this)>Обнулить таблицу лидеров</button><p class=m>Обнулит «выиграно всего» у всех и «победу дня».</p></div>`}
+
+let SEL=null,UL=[];
+async function aUsers(){const r=await A('users',{q:$('#sq').value});UL=r.list;$('#ul').innerHTML=UL.map(u=>`<div class=row2 onclick="aPick('${esc(u.id)}')"><b>${esc(u.n)}</b><em>${u.bal.toLocaleString('ru')}</em></div>`).join('')||'<p class=m>Никого не найдено</p>'}
+function aPick(id){SEL=id;const u=UL.find(x=>x.id==id);$('#sel').textContent=u?`Выбран: ${u.n} · баланс ${u.bal.toLocaleString('ru')} · выиграно ${u.won.toLocaleString('ru')}`:''}
+async function aBal(k){if(!SEL)return toast('Сначала выбери игрока');const v=+$('#sa').value;if(!(v>=0)||$('#sa').value==='')return toast('Введи сумму');
+ const r=await A('bal',{uid:SEL,k,v});if(r.err)return toast(r.err);toast('Новый баланс: '+r.bal);await aUsers();aPick(SEL)}
+let RC=0;function aReset(b){if(!RC){RC=1;b.textContent='Точно? Нажми ещё раз';setTimeout(()=>{RC=0;b.textContent='Обнулить таблицу лидеров'},4000);return}RC=0;A('resetlb').then(()=>{toast('Таблица лидеров обнулена');b.textContent='Обнулить таблицу лидеров'})}
+
+/* ---------- PvP (общая арена) ---------- */
+let PV={phase:'lobby',players:[],end:0,traj:null,start:0,win:-1},MYID='';
+function pvApply(m){PV={phase:m.phase,players:m.players,end:m.left?performance.now()+m.left:0,traj:m.traj||null,start:performance.now()+(m.startIn||0),win:m.win??-1}}
+function g_pvp(el){
+ el.innerHTML=`<canvas id=cv width=300 height=300></canvas><div class=big id=tm style="font-size:24px"></div><div id=pl class=m style="text-align:center"></div><div id=res class=res></div>${betUI()}<div class=m style="text-align:center">Можно добавлять ставку до старта</div><button class=btn id=go>Поставить / добавить ставку</button>`;
+ const cv=$('#cv'),x=cv.getContext('2d'),Z=300,r0=9,COL=['#7c5cff','#ff4d6a','#2ecc71','#ffc233','#33b5ff','#ff8c42'],BU=[[90,80],[210,150],[100,225]];let key='';
+ function draw(P,tot,bx,by){x.clearRect(0,0,Z,Z);let a=0;P.forEach((p,i)=>{const w=p.b/tot*Z;x.fillStyle=COL[i%6]+'cc';x.fillRect(a,0,w,Z);a+=w});
+  x.fillStyle='#ffffff40';BU.forEach(b=>{x.beginPath();x.arc(b[0],b[1],16,0,7);x.fill()});x.strokeStyle='#fff';x.lineWidth=3;x.strokeRect(1.5,1.5,297,297);
+  if(bx!=null){x.beginPath();x.arc(bx,by,r0,0,7);x.fillStyle='#fff';x.fill();x.strokeStyle='#000';x.lineWidth=1;x.stroke()}}
+ function frame(){if(!document.body.contains(cv))return;const now=performance.now(),P=PV.players,tot=P.reduce((s,p)=>s+p.b,0)||1;let bx=150,by=150;
+  if(PV.traj&&PV.phase!='lobby'){const n=PV.traj.length/2,i=Math.min(n-1,Math.max(0,Math.floor((now-PV.start)/1000*60)));bx=PV.traj[2*i];by=PV.traj[2*i+1]}
+  P.length?draw(P,tot,bx,by):draw([{b:1}],1,150,150);
+  const L=PV.end?Math.max(0,Math.ceil((PV.end-now)/1000)):0;
+  $('#tm').textContent=PV.phase=='lobby'?(P.length?`${P.length&&P.every(p=>p.u=='bot')?'Демо: играют боты · ':''}Старт через ${L} с${P.length<2?' · нужен ещё игрок':''}`:'Ждём игроков…'):PV.phase=='run'?'Шарик летит…':'';
+  const k=JSON.stringify(P)+PV.phase;if(k!=key){key=k;$('#pl').innerHTML=P.map((p,i)=>`<span style="color:${COL[i%6]}">■</span> ${esc(p.n)}${p.u==MYID?' (ты)':''}: ${p.b} (${fmt(p.b/tot*100)}%)`).join('<br>')+(P.length?`<br>Банк: ${fmt(tot)}`:'')}
+  if(PV.phase=='result'&&PV.win>=0){const w=P[PV.win];say(w.u==MYID?`Победа! Банк ${fmt(tot)}`:`Победил ${w.n}`,w.u==MYID)}else if(PV.phase=='lobby')$('#res').textContent='';
+  requestAnimationFrame(frame)}
+ frame();
+ $('#go').onclick=()=>{const b=getBet();if(!b)return;rpc('pvp_join',{bet:b}).then(r=>{if(r.err)toast(r.err);else{S.bal=r.bal;upd();toast('Ставка принята')}})}}
+
+/* ---------- Plinko ---------- */
+function g_plinko(el){const M=[50,15,5,2,.75,.75,0,.75,.75,2,5,15,50],R=12;
+ el.innerHTML=`<canvas id=cv width=320 height=310></canvas><div id=res class=res></div>${betUI()}<button class=btn id=go>Бросить шарик</button>`;
+ const x=$('#cv').getContext('2d'),X=(i,k)=>160+(k-i/2)*24,Y=i=>24+i*20;let busy=0;
+ function draw(bx,by,hl){x.clearRect(0,0,320,310);x.fillStyle='#667';for(let i=0;i<R;i++)for(let k=0;k<=i;k++){x.beginPath();x.arc(X(i,k),Y(i),2.5,0,7);x.fill()}
+  x.font='bold 10px system-ui';x.textAlign='center';M.forEach((m,k)=>{x.fillStyle=k==hl?'#7c5cff':m>=2?'#2e6b4a':m==0?'#6b2e3a':'#262a3b';x.fillRect(X(R,k)-11,Y(R)-4,22,22);x.fillStyle='#fff';x.fillText(m+'x',X(R,k),Y(R)+11)});
+  if(bx!=null){x.beginPath();x.arc(bx,by,6,0,7);x.fillStyle='#ffc233';x.fill()}}
+ draw();
+ $('#go').onclick=async()=>{if(busy)return;const b=getBet();if(!b)return;busy=1;take(b);const Q=await play({g:'plinko',bet:b});if(!Q){busy=0;return}
+  const bits=[...Array(R)].map((_,i)=>i<Q.r.k?1:0).sort(()=>rnd()-.5);let k=0,px=160,py=Y(0)-12;
+  for(let j=1;j<=R;j++){k+=bits[j-1];const nx=X(j,k),ny=Y(j)-12,ox=px,oy=py;await anim(p=>draw(ox+(nx-ox)*p,oy+(ny-oy)*p-Math.sin(p*Math.PI)*5),170);px=nx;py=ny}
+  const m=M[k];setBal(Q);draw(px,py,k);say(`x${m} → ${fmt(b*m)}`,m>=1);busy=0}}
+
+/* ---------- Revolver ---------- */
+function g_rev(el){const M=[1.35,1.8,2.5,4,8];let n=0,busy=0,rot=0,bl=[];
+ el.innerHTML=`<div class=hm>▼</div><div class=drum id=dr></div><div class=sel id=nb></div><div class=m id=inf style="text-align:center"></div><div id=res class=res></div>${betUI()}<button class=btn id=go>Выстрелить</button>`;
+ const rc=()=>$('#dr').innerHTML=[0,1,2,3,4,5].map(i=>`<div class=cm style="transform:rotate(${i*60}deg) translateY(-72px)">${bl.includes(i)?'🔴':''}</div>`).join('');
+ const chance=()=>Math.min(.95,S.rtp/M[n]);
+ const info=()=>{$('#inf').textContent=`${n+1} патр. · x${M[n]} · шанс выжить ${fmt(chance()*100)}%`;bl=[...Array(n+1).keys()];rc()};
+ choices('nb',['1','2','3','4','5'],0,k=>{n=k;info()});info();
+ $('#go').onclick=async()=>{if(busy)return;const b=getBet();if(!b)return;busy=1;take(b);const Q=await play({g:'rev',bet:b,n});if(!Q){busy=0;return}const win=Q.r.win,t=Q.r.t;bl=Q.r.bl;rc();
+  rot+=1080+((((-t*60-rot)%360)+360)%360);$('#dr').style.transform=`rotate(${rot}deg)`;await wait(3300);
+  setBal(Q);if(win){say(`Щёлк — пусто! x${M[n]} → ${fmt(b*M[n])}`,1)}else say('💥 Выстрел. Ставка сгорела',0);busy=0}}
+
+/* ---------- Dice ---------- */
+function g_dice(el){let t=50,ov=0,busy=0;
+ el.innerHTML=`<div class=big id=num>--</div><div class=bar id=bar><div class=mk id=mk style="left:0"></div></div><div class=scale><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div><input type=range id=rg min=2 max=98 value=50 style="padding:0"><div class=sel id=md></div><div class=m id=inf style="text-align:center"></div><div id=res class=res></div>${betUI()}<button class=btn id=go>Бросить кубы</button>`;
+ const ch=()=>ov?100-t:t,mu=()=>S.rtp*100/ch();
+ const info=()=>{$('#bar').style.background=ov?`linear-gradient(90deg,var(--r) ${t}%,var(--g) ${t}%)`:`linear-gradient(90deg,var(--g) ${t}%,var(--r) ${t}%)`;$('#inf').textContent=`${ov?'Больше':'Меньше'} ${t} · шанс ${fmt(ch())}% · x${fmt(mu())}`};
+ $('#rg').oninput=e=>{t=+e.target.value;info()};choices('md',['Меньше','Больше'],0,k=>{ov=k;info()});info();
+ $('#go').onclick=async()=>{if(busy)return;const b=getBet();if(!b)return;busy=1;take(b);const Q=await play({g:'dice',bet:b,t,ov});if(!Q){busy=0;return}const r=Q.r.roll;
+  for(let i=0;i<6;i++){const v=rnd()*100;$('#mk').style.left=v+'%';$('#num').textContent=v.toFixed(2);await wait(380)}
+  $('#mk').style.left=r+'%';$('#num').textContent=r.toFixed(2);await wait(450);const win=ov?r>t:r<t;
+  setBal(Q);if(win){say(`Выигрыш ${fmt(b*mu())}`,1)}else say('Мимо',0);busy=0}}
+
+/* ---------- X50 (колесо) ---------- */
+function g_x50(el){const V=[2,3,5,50],SEG=[2,3,2,5,2,3,2,3,5,2,3,2,50,2,3,5,2,3,2,3,5,2,3,5],CL={2:'#3a7bd5',3:'#2ecc71',5:'#ffc233',50:'#ff4d6a'},N=SEG.length,A=360/N;let s=0,busy=0,rot=0;
+ const W=()=>{const w=V.map(v=>S.rtp/v),t=w.reduce((a,b)=>a+b);return w.map(q=>q/t)};
+ el.innerHTML=`<div class=hm>▼</div><div class=drum style="width:230px;height:230px;transition-duration:4s;background:conic-gradient(${SEG.map((v,i)=>`${CL[v]} ${i*A}deg ${(i+1)*A}deg`).join(',')})" id=wl>${SEG.map((v,i)=>`<b class=lb style="transform:rotate(${i*A+A/2}deg) translateY(-98px)">${v}</b>`).join('')}</div><div class=m style="text-align:center">На какой множитель ставишь?</div><div class=sel id=pk></div><div id=res class=res></div>${betUI()}<button class=btn id=go>Крутить</button>`;
+ choices('pk',V.map((v,i)=>`x${v}<br><small>${fmt(W()[i]*100)}%</small>`),0,k=>s=k);
+ $('#go').onclick=async()=>{if(busy)return;const b=getBet();if(!b)return;busy=1;take(b);const Q=await play({g:'x50',bet:b,s});if(!Q){busy=0;return}const t=Q.r.t;
+  const ix=SEG.map((v,i)=>v==V[t]?i:-1).filter(i=>i>=0),i=ix[(rnd()*ix.length)|0];
+  rot+=1440+((((-(i*A+A/2)-rot)%360)+360)%360);$('#wl').style.transform=`rotate(${rot}deg)`;await wait(4200);
+  setBal(Q);if(t==s){say(`x${V[s]}! +${fmt(b*V[s])}`,1)}else say(`Выпало x${V[t]}`,0);busy=0}}
+
+/* ---------- Слоты (замени эмодзи на <img> с NFT-подарками) ---------- */
+function g_slots(el){
+ const SY=['🧸','🌹','🍾','🎂','🏆','💍','💎','🚀','🎁'],Wt=[22,18,15,12,9,7,5,3],
+  PT=[[8,19,57],[11,30,95],[15,38,152],[23,57,228],[38,95,380],[57,152,760],[95,304,1520],[190,570,3040]],
+  LN=[[0,0,0,0,0],[1,1,1,1,1],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],[0,0,1,0,0],[2,2,1,2,2],[1,0,0,0,1],[1,2,2,2,1],[0,1,1,1,0],[2,1,1,1,2],[1,0,1,0,1],[1,2,1,2,1],[0,1,0,1,0],[2,1,2,1,2]];let busy=0;
+ const pick=()=>{let r=rnd()*100;for(let i=0;i<8;i++){if((r-=Wt[i])<0)return i}return 8};
+ el.innerHTML=`<div class=mach><div class=ttl>★ GIFT SLOTS ★</div><div class=cols>${[0,1,2,3,4].map(c=>`<div class=col>${[0,1,2].map(r=>`<span id=c${c}${r}>🎁</span>`).join('')}</div>`).join('')}</div><div class=m style="text-align:center;margin-top:6px">15 линий · 3+ в ряд слева направо<br>3+ 🎁 = 10 фриспинов x3 + бонус-выплата</div></div><div id=res class=res></div>${betUI()}<button class=btn id=go>КРУТИТЬ</button>`;
+ async function once(sp,b,free){document.querySelectorAll('.col span').forEach(e=>e.classList.remove('win'));
+  const g=sp.g;
+  for(let c=0;c<5;c++){for(let f=0;f<3+c*2;f++){for(let j=c;j<5;j++)for(let r=0;r<3;r++)$('#c'+j+r).textContent=SY[(rnd()*9)|0];await wait(55)}for(let r=0;r<3;r++)$('#c'+c+r).textContent=SY[g[c][r]]}
+  let w=0;const mul=free?3:1;
+  LN.forEach(l=>{const s=g[0][l[0]];if(s==8)return;let n=1;while(n<5&&g[n][l[n]]==s)n++;if(n>=3){w+=PT[s][n-3]*mul*b/15;for(let c=0;c<n;c++)$('#c'+c+l[c]).classList.add('win')}});
+  return{w:sp.w,sc:sp.sc}}
+ $('#go').onclick=async()=>{if(busy)return;const b=getBet();if(!b)return;busy=1;take(b);const Q=await play({g:'slots',bet:b});if(!Q){busy=0;return}const SP=Q.r.spins,r=await once(SP[0],b,0);let tot=r.w;
+  if(r.sc>=3){tot+=b*({3:3,4:10}[r.sc]||30);say('🎁 БОНУС! 10 фриспинов x3',1);await wait(1200);for(let i=1;i<=10;i++){const q=await once(SP[i],b,1);tot+=q.w;say(`Фриспин ${i}/10 · итого ${fmt(tot)}`,1);await wait(500)}}
+  setBal(Q);say(tot?`Выигрыш ${fmt(tot)}`:'Мимо',tot>=b);busy=0}}
+
+/* ---------- Апгрейдер ---------- */
+function g_up(el){let mx=2,deg=0,busy=0;
+ el.innerHTML=`<div class=wheel id=wh><div class=arr id=ar></div></div><div class=m>Свой множитель (1.1 – 100)</div><input id=mx type=number step=0.1 value=2><div class=chips>${[1.5,2,3,5,10,25].map(m=>`<button onclick="$('#mx').value=${m};$('#mx').oninput()">x${m}</button>`).join('')}</div><div class=m id=inf style="text-align:center"></div><div id=res class=res></div>${betUI()}<button class=btn id=go>Апгрейд</button>`;
+ const ch=()=>Math.min(.95,S.rtp/mx),info=()=>{$('#wh').style.background=`conic-gradient(var(--g) 0 ${ch()*360}deg,#2a2f44 0)`;$('#inf').textContent=`x${fmt(mx)} · шанс ${fmt(ch()*100)}%`};
+ $('#mx').oninput=()=>{mx=Math.min(100,Math.max(1.1,+$('#mx').value||2));info()};info();
+ $('#go').onclick=async()=>{if(busy)return;const b=getBet();if(!b)return;busy=1;take(b);const Q=await play({g:'up',bet:b,mx});if(!Q){busy=0;return}const win=Q.r.win,ang=Q.r.ang;
+  deg+=1440+((((ang-deg)%360)+360)%360);$('#ar').style.transform=`rotate(${deg}deg)`;await wait(3200);
+  setBal(Q);if(win){say(`Успех! +${fmt(b*mx)}`,1)}else say('Апгрейд не удался',0);busy=0}}
+
+/* ---------- Ракета ---------- */
+function g_rocket(el){const K=.11,W=320,H=220;let RK=null;
+ el.innerHTML=`<div class=hist id=hs></div><canvas id=cv width=320 height=220></canvas><div id=res class=res></div>${betUI()}<div class=m>Авто-вывод, x (необязательно)</div><input id=au type=number step=0.1 placeholder="например 2"><button class=btn id=go>Запуск 🚀</button>`;
+ const cv=$('#cv'),x=cv.getContext('2d'),go=$('#go'),stars=[...Array(30)].map(()=>[rnd()*W,rnd()*H,rnd()*1.5+.5]);
+ const hist=()=>rpc('rhist').then(r=>{const e=$('#hs');if(e)e.innerHTML=r.h.map(v=>`<span style="color:${v<2?'#ff4d6a':v<10?'#2ecc71':'#ffc233'}">x${v.toFixed(2)}</span>`).join('')});hist();
+ window.RKH=m=>{if(RK&&m.id==RK.id)RK.crash=m.crash};
+ function draw(t,m,boom,msg){x.fillStyle='#0b0e17';x.fillRect(0,0,W,H);x.fillStyle='#fff';stars.forEach(s=>x.fillRect(s[0],(s[1]+t*30*s[2])%H,s[2],s[2]));
+  const Tm=Math.max(8,t*1.15),Mm=Math.max(2,m*1.15),P=q=>[30+q/Tm*(W-70),H-28-K*q/Math.log(Mm)*(H-70)];
+  x.strokeStyle='#ff8c42';x.lineWidth=3;x.beginPath();for(let i=0;i<=40;i++){const p=P(t*i/40);i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])}x.stroke();
+  const p=P(t),q=P(Math.max(0,t-.3)),a=t<.05?0:Math.atan2(p[1]-q[1],p[0]-q[0])+Math.PI/4;
+  x.save();x.translate(p[0],p[1]);x.textAlign='center';if(boom){x.font='46px serif';x.fillText('💥',0,14)}else{x.font='30px serif';x.rotate(a);x.fillText('🚀',0,10)}x.restore();
+  x.textAlign='center';x.font='bold 40px system-ui';x.fillStyle=boom?'#ff4d6a':'#fff';x.fillText(msg||'x'+m.toFixed(2),W/2,H/2-20)}
+ function finish(){RK.over=1;const Q=RK.Q;
+  if(RK.auto){setBal(Q);say(Q.win?`Авто x${RK.auto}: +${fmt(Q.pay)}`:`Улетела на x${RK.crash.toFixed(2)}`,Q.win)}
+  else if(!RK.cashed)say(`Улетела на x${(RK.crash||1).toFixed(2)}. Ставка сгорела`,0);hist()}
+ function loop(){if(!document.body.contains(cv))return;const now=performance.now();let btn='Запуск 🚀',dis=0;
+  if(!RK)draw(0,1,0);
+  else{const t=(now-RK.t0)/1000;
+   if(t<0){draw(0,1,0,'Старт '+Math.ceil(-t));btn='Взлёт…';dis=1}
+   else{const tc=RK.crash!=null?Math.log(RK.crash)/K:1e9;
+    if(t>=tc||t>65){draw(tc<1e9?tc:t,RK.crash||1,1,'x'+(RK.crash||1).toFixed(2));if(!RK.over)finish()}
+    else{const m=Math.exp(K*t);draw(t,m,0);
+     if(!RK.over){if(RK.auto){btn='Авто-вывод x'+RK.auto;dis=1}else if(RK.cashed){btn='Ждём взрыв…';dis=1}else btn='ЗАБРАТЬ x'+(Math.floor(m*100)/100).toFixed(2)}}}}
+  go.textContent=btn;go.disabled=!!dis;requestAnimationFrame(loop)}
+ go.onclick=async()=>{
+  if(RK&&!RK.over){if(RK.auto||RK.cashed||performance.now()<RK.t0)return;RK.cashed=1;const Q=await rpc('rocket_cash',{rk:RK.id});
+   if(Q.crashed){RK.crash=Q.crash;RK.cashed=0;return}if(Q.err){toast(Q.err);RK.cashed=0;return}
+   setBal(Q);RK.crash=Q.crash;say(`Забрал x${Q.m.toFixed(2)} → +${fmt(Q.pay)}`,1);return}
+  const b=getBet();if(!b)return;const au=+$('#au').value||0;take(b);
+  const Q=await rpc('rocket_start',{bet:b,auto:au});if(Q.err){toast(Q.err);if(Q.bal!=null){S.bal=Q.bal;S.won=Q.won}else S.bal+=b;upd();return}
+  RK={id:Q.rk,t0:performance.now()+Q.startIn,crash:Q.crash??null,auto:au>=1.01?au:0,Q,over:0,cashed:0};say('',1)};
+ loop()}
+
+/* ---------- Ежедневный кейс ---------- */
+function g_case(el){const PR=[1000,5000,10000,15000,35000,100000],CL=['#8b90a8','#3a7bd5','#7c5cff','#e056fd','#ffc233','#ff4d6a'],lab=v=>v/1000+'K';let busy=0,cs=0,until=0;
+ el.innerHTML=`<div class=rl id=rl><div class=pin></div><div class=strip id=sp></div></div><div class=m id=ci style="text-align:center;margin:8px 0"></div><button class=btn id=go>Открыть кейс</button><div id=res class=res></div><div class=m style="text-align:center">1K — 75% · 5K — 15% · 10K — 5% · 15K — 2.5% · 35K — 1.5% · 100K — 1%<br>Бесплатно раз в 24 часа. Дополнительные кейсы даёт промокод.</div>`;
+ const item=i=>`<div class=it style="border-color:${CL[i]}"><span style="font-size:24px">📦</span>${lab(PR[i])}</div>`;
+ $('#sp').innerHTML=Array.from({length:12},()=>item((rnd()*6)|0)).join('');
+ const tm=ms=>{const s=Math.ceil(ms/1000);return [s/3600|0,(s%3600)/60|0,s%60].map(v=>String(v).padStart(2,'0')).join(':')};
+ const info=()=>{const e=$('#ci');if(!e)return;const l=until-Date.now();e.textContent=cs?`Кейсов по промокоду: ${cs}`:l>0?`Следующий бесплатный кейс через ${tm(l)}`:'Бесплатный кейс доступен!'};
+ rpc('case_state').then(r=>{cs=r.cases;until=Date.now()+r.left;info()});
+ const iv=setInterval(()=>{if(!$('#ci'))return clearInterval(iv);info()},1000);
+ $('#go').onclick=async()=>{if(busy)return;busy=1;const Q=await rpc('case_open');if(Q.err){toast(Q.err);if(Q.left!=null){until=Date.now()+Q.left;info()}busy=0;return}
+  const I=36,sp=$('#sp');sp.innerHTML=Array.from({length:44},(_,k)=>item(k==I?Q.i:(rnd()*6)|0)).join('');
+  const w=$('#rl').clientWidth;sp.style.transition='none';sp.style.transform='translateX(0)';sp.offsetWidth;
+  sp.style.transition='transform 5s cubic-bezier(.12,.7,.1,1)';sp.style.transform=`translateX(${-(I*88+40-w/2+(rnd()-.5)*40)}px)`;await wait(5300);
+  setBal(Q);cs=Q.cases;until=Date.now()+Q.left;info();say(`+${Q.prize.toLocaleString('ru')} монет!`,1);busy=0}}
+
+const G={rocket:g_rocket,case:g_case,pvp:g_pvp,plinko:g_plinko,rev:g_rev,dice:g_dice,x50:g_x50,slots:g_slots,up:g_up};
+conn().then(view);
+</script></body></html>
