@@ -4,7 +4,7 @@ const TOKEN=process.env.BOT_TOKEN||'',PW=(process.env.ADMIN_PASSWORD||'mishanya5
 let DB={rtp:.96,promos:{},users:{},best:{d:'',g:{}},rhist:[],bots:true};try{DB={...DB,...JSON.parse(fs.readFileSync(FILE,'utf8'))}}catch(e){}
 const UR=process.env.UPSTASH_REDIS_REST_URL,UT=process.env.UPSTASH_REDIS_REST_TOKEN;
 const rc=async a=>(await fetch(UR,{method:'POST',headers:{Authorization:'Bearer '+UT},body:JSON.stringify(a)})).json();
-const flush=()=>UR?rc(['SET','casino',JSON.stringify(DB)]).catch(e=>console.log('save fail',e.message)):Promise.resolve();
+const flush=()=>UR?rc(['SET','casino',JSON.stringify(DB)]).then(r=>{if(r.error)console.log('Upstash SET error:',r.error)}).catch(e=>console.log('save fail',e.message)):Promise.resolve();
 let dirty=0;const save=()=>{dirty=1};setInterval(()=>{if(dirty){dirty=0;fs.writeFile(FILE,JSON.stringify(DB),()=>{});flush()}},UR?15000:4000);
 process.on('SIGTERM',async()=>{await flush();process.exit(0)});
 const rnd=Math.random,clamp=(v,a,b)=>Math.min(b,Math.max(a,+v||a)),r2=n=>Math.round(n*100)/100,sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -121,5 +121,6 @@ wss.on('connection',w=>{w.on('message',async raw=>{let m;try{m=JSON.parse(raw)}c
    return rep({users:Object.keys(DB.users).length,online:ONLINE.size,rtp:r2(DB.rtp*100),bots:DB.bots!==false,promos:Object.entries(DB.promos).map(([k,p])=>`${k}: ${p.a}${p.kind=='case'?' кейс.':''} (осталось ${p.left})`)})}
  }});
  w.on('close',()=>ONLINE.delete(w))});
-(async()=>{if(UR){try{const r=await rc(['GET','casino']);if(r.result)DB={...DB,...JSON.parse(r.result)};console.log('DB loaded from Upstash, users:',Object.keys(DB.users).length)}catch(e){console.log('load fail',e.message)}}
+(async()=>{if(UR){try{const r=await rc(['GET','casino']);if(r.error)console.log('Upstash GET error:',r.error);if(r.result)DB={...DB,...JSON.parse(r.result)};console.log('DB loaded from Upstash, users:',Object.keys(DB.users).length)}catch(e){console.log('load fail',e.message)}}
+ if(!UR)console.log('Upstash НЕ настроен: данные сбросятся при перезапуске');
  srv.listen(PORT,()=>console.log('Casino on :'+PORT))})();
